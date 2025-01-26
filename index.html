@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Markdown Embedder</title>
+    <title>Changelog</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -53,59 +53,62 @@
       }
     </style>
     <script>
-      async function render(markdown) {
-        try {
-          const response = await fetch("https://api.github.com/markdown", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ mode: "markdown", text: markdown }),
-          });
-          if (!response.ok) {
-            throw new Error("Failed to render markdown");
-          }
-          return await response.text();
-        } catch (error) {
-          throw new Error("Error rendering markdown: " + error.message);
-        }
-      }
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const markdownUrl = urlParams.get("url");
-
-      function showError(message) {
-        document.body.innerHTML = `<div class="container"><div class="error">${message}</div></div>`;
-      }
-
-      function showLoading() {
-        document.body.innerHTML = `<div class="container"><div class="loading">Loading...</div></div>`;
-      }
-
-      if (!markdownUrl) {
-        showError("No URL parameter found. Please provide a 'url' parameter.");
-      } else {
-        showLoading();
-        fetch(markdownUrl)
-          .then((response) => {
+      // Wait for the DOM to load before running the script
+      document.addEventListener("DOMContentLoaded", () => {
+        async function render(markdown) {
+          try {
+            const response = await fetch("https://api.github.com/markdown", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ mode: "markdown", text: markdown }),
+            });
             if (!response.ok) {
-              throw new Error("Failed to fetch markdown content");
+              throw new Error("Failed to render markdown");
             }
-            return response.text();
-          })
-          .then((data) => {
-            render(data)
-              .then((rendered) => {
-                document.body.innerHTML = `<div class="container">${rendered}</div>`;
-              })
-              .catch((error) => {
-                showError(error.message);
-              });
-          })
-          .catch((error) => {
-            showError(error.message);
-          });
-      }
+            return await response.text();
+          } catch (error) {
+            throw new Error("Error rendering markdown: " + error.message);
+          }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const markdownUrl = urlParams.get("url");
+
+        function showError(message) {
+          document.body.innerHTML = `<div class="container"><div class="error">${message}</div></div>`;
+        }
+
+        function showLoading() {
+          document.body.innerHTML = `<div class="container"><div class="loading">Loading...</div></div>`;
+        }
+
+        if (!markdownUrl) {
+          showError("No URL parameter found. Please provide a 'url' parameter.");
+        } else {
+          showLoading();
+          fetch(markdownUrl)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Failed to fetch markdown content");
+              }
+              return response.text();
+            })
+            .then((data) => {
+              render(data)
+                .then((rendered) => {
+                  document.body.innerHTML = `<div class="container">${rendered}</div>`;
+                })
+                .catch((error) => {
+                  showError(error.message);
+                });
+            })
+            .catch((error) => {
+              showError(error.message);
+            });
+        }
+      });
     </script>
   </head>
   <body></body>
